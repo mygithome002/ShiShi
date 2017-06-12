@@ -1105,7 +1105,10 @@ void PlayerbotFactory::InitEquipment(bool incremental)
 		if (validIndexes)
 		{
 			int32 equipmentLevel = bot->getLevel() / 10;
-			equipmentLevel = equipmentLevel * 10;			
+			if (equipmentLevel == 8)
+			{
+				equipmentLevel = 7;
+			}
 			while (equipmentLevel >= 0)
 			{
 				if (categorizedEquipments[index0][index1][equipmentLevel].size() > 0)
