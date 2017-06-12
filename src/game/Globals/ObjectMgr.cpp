@@ -4492,7 +4492,10 @@ void ObjectMgr::LoadQuests()
 		uint32 checkSeq = 0;
 		set<uint32> destInventoryTypes;
 		uint32 levelRange = qinfo->Level / 10;
-		levelRange = levelRange * 10;
+		if (levelRange == 8)
+		{
+			levelRange = 7;
+		}
 		for (int rewardCount = 0; rewardCount < QUEST_REWARD_CHOICES_COUNT; rewardCount++)
 		{
 			if (qinfo->RewardChoiceItemId[rewardCount] > 0)
@@ -8438,6 +8441,62 @@ void ObjectMgr::LoadVendors()
 			VendorItemData& vList = _cacheVendorItemStore[entry];
 
 			vList.AddItem(item_id, maxcount, incrtime, ExtendedCost);
+
+			// EJ generate mCategorizedEquipmentEntryStore
+			const ItemTemplate* checkIT = GetItemTemplate(entry);
+			if (checkIT)
+			{
+				switch (checkIT->Class)
+				{
+				case ITEM_CLASS_WEAPON:
+				case ITEM_CLASS_ARMOR:
+				{
+					uint32 checkSeq = 0;
+					set<uint32> destInventoryTypes;
+					uint32 levelRange = checkIT->RequiredLevel / 10;
+					if (levelRange == 8)
+					{
+						levelRange = 7;
+					}					
+					if (checkIT->InventoryType == 13)
+					{
+						destInventoryTypes.insert(21);
+						destInventoryTypes.insert(22);
+					}
+					else if (checkIT->InventoryType == 17)
+					{
+						destInventoryTypes.insert(21);
+					}
+					else if (checkIT->InventoryType == 23)
+					{
+						destInventoryTypes.insert(22);
+					}
+					else
+					{
+						destInventoryTypes.insert(checkIT->InventoryType);
+					}
+					for (set<uint32>::iterator it = destInventoryTypes.begin(); it != destInventoryTypes.end(); it++)
+					{
+						checkSeq = 0;
+						if (mCategorizedEquipmentEntryStore[*it].size() > 0)
+						{
+							if (mCategorizedEquipmentEntryStore[*it][checkIT->SubClass].size() > 0)
+							{
+								if (mCategorizedEquipmentEntryStore[*it][checkIT->SubClass][levelRange].size() > 0)
+								{
+									checkSeq = mCategorizedEquipmentEntryStore[*it][checkIT->SubClass][levelRange].size();
+								}
+							}
+						}
+						mCategorizedEquipmentEntryStore[*it][checkIT->SubClass][levelRange].insert(std::pair<uint32, uint32>(checkSeq, checkIT->ItemId));
+					}
+					break;
+				}
+				default:
+					break;
+				}
+			}
+
 			++count;
 		}
 	} while (result->NextRow());
